@@ -4,7 +4,7 @@
 
 * 대한민국 법정동 코드 조회 API
 
-법정동 목록 API는 GCP의 Cloud Run 환경 위에서 동작합니다. 기본적으로 gRPC 서버와 ESPv2 기반 프록시 서버가 함께 동작합니다. API 주소는 [[https://grpc-proxy-server-mkvo6j4wsq-du.a.run.app][grpc-proxy-server-mkvo6j4wsq-du.a.run.app]] 입니다. 모든 동작은 [[https://github.com/kr-juso/protobuf/tree/main/juso][proto 프로젝트]]에 정의된 내용에 기반하여 동작합니다.
+법정동 목록 API는 Cloudflare Workers 환경 위에서 동작합니다. API 주소는 [[https://api.juso.dev][api.juso.dev]] 입니다.
 
 ** 코드 체계 설명
 
@@ -33,35 +33,52 @@
 **** 대한민국의 모든 특별/광역시, 도 반환
 
 #+BEGIN_SRC
-https://grpc-proxy-server-mkvo6j4wsq-du.a.run.app/v1/regcodes?regcode_pattern=*00000000
+https://api.juso.dev/v1/regcodes?regcode_pattern=*00000000
 #+END_SRC
 
 **** 서울특별시 소속의 모든 구, 동을 반환
 
 #+BEGIN_SRC
-https://grpc-proxy-server-mkvo6j4wsq-du.a.run.app/v1/regcodes?regcode_pattern=11*
+https://api.juso.dev/v1/regcodes?regcode_pattern=11*
 #+END_SRC
 
 **** 서울특별시 소속의 모든 구 반환
 
 #+BEGIN_SRC
-https://grpc-proxy-server-mkvo6j4wsq-du.a.run.app/v1/regcodes?regcode_pattern=11*00000
+https://api.juso.dev/v1/regcodes?regcode_pattern=11*00000
 #+END_SRC
 
 **** 서울특별시 종로구를 포함한 종로구의 모든 동 반환
 
 #+BEGIN_SRC
-https://grpc-proxy-server-mkvo6j4wsq-du.a.run.app/v1/regcodes?regcode_pattern=1111*
+https://api.juso.dev/v1/regcodes?regcode_pattern=1111*
 #+END_SRC
 
 **** 서울특별시 종로구의 모든 동"만" 반환
 
 #+BEGIN_SRC
-https://grpc-proxy-server-mkvo6j4wsq-du.a.run.app/v1/regcodes?regcode_pattern=1111*&is_ignore_zero=true
+https://api.juso.dev/v1/regcodes?regcode_pattern=1111*&is_ignore_zero=true
 #+END_SRC
 
-** gRPC 호출
-*** 사용법
-proto파일을 구현한 client를 이용해 호출합니다.
+** 응답
+*** 응답 형식
+조회 결과는 ~regcodes~ 배열을 가진 JSON 객체로 반환되며, 각 항목은 법정동코드(~code~)와 이름(~name~)을 가집니다.
 
-대상 주소는 [[grpc-proxy-server-mkvo6j4wsq-du.a.run.app][grpc-proxy-server-mkvo6j4wsq-du.a.run.app]] 이며, 별도 인증은 필요하지 않습니다.
+#+BEGIN_SRC
+https://api.juso.dev/v1/regcodes?regcode_pattern=1111*&is_ignore_zero=true
+#+END_SRC
+
+#+BEGIN_SRC json
+{
+  "regcodes": [
+    { "code": "1111010100", "name": "서울특별시 종로구 청운동" },
+    ...
+  ]
+}
+#+END_SRC
+
+*** 빈 결과
+다음의 경우 오류가 아닌 빈 배열(~{"regcodes": []}~)을 반환합니다.
++ ~regcode_pattern~ 이 비어 있거나 전달되지 않은 경우
++ ~regcode_pattern~ 에서 ~*~ 를 제외한 글자 수가 법정동코드의 길이(10자)보다 많은 경우
++ 패턴과 일치하는 법정동코드가 없는 경우

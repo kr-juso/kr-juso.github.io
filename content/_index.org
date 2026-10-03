@@ -11,7 +11,7 @@
 * 대한민국 법정동 코드 조회 API
 [[https://www.code.go.kr/stdcode/regCodeL.do][행정표준관리시스템]]에서 제공하는 데이터를 기반으로 시군구(법정동) 목록을 조회하는 API입니다.
 
-http와 gRPC를 지원합니다.
+HTTP를 지원합니다.
 
 버그 제보나 데이터 업데이트 문의는 [[https://github.com/kr-juso/api/issues][이 곳]]에 남겨주세요.
 
